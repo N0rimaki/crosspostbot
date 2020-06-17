@@ -1,0 +1,4 @@
+[DEFAULT]
+_reddituser = REDDIT_USERNAME
+_subtocrosspost = REDDIT_SUBNAME
+_triggerwords = ['awesome!','trigger2!','trigger3!','wow!']
