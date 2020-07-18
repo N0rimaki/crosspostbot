@@ -13,13 +13,14 @@ LOG_FILENAME = "./log_crossbot.txt"
 
 
 ___debug___ = True
+___runprod___= False
 
 if ___debug___ == True:
 	log.basicConfig(filename=LOG_FILENAME,level=log.INFO,format='%(message)s')
 
 
 def work():
-	log.info("{} Lastrun".format(now))
+	log.info("\r\n{} Lastrun".format(now))
 	
 	config = configparser.ConfigParser()
 	config.read('config.ini')
@@ -28,30 +29,36 @@ def work():
 	_subtocrosspost = config['DEFAULT']['_subtocrosspost']
 	_triggerwords =config['DEFAULT']['_triggerwords']
 	
-	_UA = 'crossbot by /u/['+_reddituser+']'
-	reddit = praw.Reddit("bot1",user_agent=_UA)
-	reddit.validate_on_submit=True	
-
-	for comment in reddit.redditor(_reddituser).comments.new(limit=None):
-
-	
-		if comment.created_utc >= timeMinusOneDay:
-			if comment.body.strip().lower() in _triggerwords:
-				log.info("{} Trigger found: {}".format(now,str(comment.body.split("\n", 1)[0][:79])))
-				log.info("{} parent_id: {}".format(now,comment.parent_id))
-				
-				
-				
-				submission = reddit.submission(id=comment.parent_id.replace('t3_',''))
-				
-				cross_post = submission.crosspost(subreddit=_subtocrosspost,send_replies=False)
-				
-
-				edited_body = comment.body + "."
-				comment.edit(edited_body)
-		else:
-			
-			exit()
+	try:
+		_UA = 'crossbot by /u/['+_reddituser+']'
+		reddit = praw.Reddit("bot1",user_agent=_UA)
+		reddit.validate_on_submit=True	
+		
+		result= reddit.redditor(_reddituser).comments.new(limit=None)
+		
+		for comment in result:
+			log.info("{} comment found id: {}".format(now,comment.id))
+		
+			if comment.created_utc >= timeMinusOneDay:
+				if comment.body.strip().lower() in _triggerwords:
+					log.info("{} Trigger found: {}".format(now,str(comment.body.split("\n", 1)[0][:79])))
+					log.info("{} parent_id: {} comment_id: {}".format(now,comment.parent_id,comment))
+					
+					
+					if ___runprod___ == True:
+						submission = reddit.submission(id=comment.parent_id.replace('t3_',''))
+						cross_post = submission.crosspost(subreddit=_subtocrosspost,send_replies=False)
+						
+						edited_body = comment.body + "."
+						comment.edit(edited_body)
+						log.info("{} run IN Production".format(now))
+					else:
+						log.info("{} run NOT IN Production".format(now))
+			else:
+				log.info("{} exit".format(now))
+				exit()
+	except Exception as err:
+		log.info("{} Error: {}".format(now,str(err)))
 
 	
 work()
