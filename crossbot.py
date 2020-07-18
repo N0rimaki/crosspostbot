@@ -9,7 +9,7 @@ timeMinusOneDay = timestamp-(24*60*60)
 
 
 
-LOG_FILENAME = "./log_crossbot.txt"
+LOG_FILENAME = "/home/pi/crosspostbot/log_crossbot.txt"
 
 
 ___debug___ = True
@@ -20,10 +20,10 @@ if ___debug___ == True:
 
 
 def work():
-	log.info("\r\n{} Lastrun".format(now))
+	log.info("{} Lastrun".format(now))
 	
 	config = configparser.ConfigParser()
-	config.read('config.ini')
+	config.read('/home/pi/crosspostbot/config.ini')
 	
 	_reddituser = config['DEFAULT']['_reddituser']
 	_subtocrosspost = config['DEFAULT']['_subtocrosspost']
