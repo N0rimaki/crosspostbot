@@ -16,11 +16,11 @@ ___debug___ = True
 ___runprod___= False
 
 if ___debug___ == True:
-	log.basicConfig(filename=LOG_FILENAME,level=log.INFO,format='%(message)s')
+	log.basicConfig(filename=LOG_FILENAME,level=log.INFO,format='%(asctime)s : %(levelname)s : %(message)s')
 
 
 def work():
-	log.info("{} Lastrun".format(now))
+	log.info("Lastrun of the script")
 	
 	config = configparser.ConfigParser()
 	config.read('/home/pi/crosspostbot/config.ini')
@@ -37,12 +37,12 @@ def work():
 		result= reddit.redditor(_reddituser).comments.new(limit=None)
 		
 		for comment in result:
-			log.info("{} comment found id: {}".format(now,comment.id))
+			log.info("comment found id: {}".format(comment.id))
 		
 			if comment.created_utc >= timeMinusOneDay:
 				if comment.body.strip().lower() in _triggerwords:
-					log.info("{} Trigger found: {}".format(now,str(comment.body.split("\n", 1)[0][:79])))
-					log.info("{} parent_id: {} comment_id: {}".format(now,comment.parent_id,comment))
+					log.info("Trigger found: {}".format(str(comment.body.split("\n", 1)[0][:79])))
+					log.info("parent_id: {} comment_id: {}".format(comment.parent_id,comment))
 					
 					
 					if ___runprod___ == True:
@@ -51,14 +51,14 @@ def work():
 						
 						edited_body = comment.body + "."
 						comment.edit(edited_body)
-						log.info("{} run IN Production".format(now))
+						log.info("run IN Production")
 					else:
-						log.info("{} run NOT IN Production".format(now))
+						log.info("run NOT IN Production")
 			else:
-				log.info("{} exit".format(now))
+				log.info("exit script")
 				exit()
 	except Exception as err:
-		log.info("{} Error: {}".format(now,str(err)))
+		log.info("Error: {}".format(str(err)))
 
 	
 work()
