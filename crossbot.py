@@ -5,6 +5,7 @@ __version__ = "1.0.0"
 
 
 import praw
+import re
 from datetime import datetime
 import configparser
 import logging as log
@@ -19,7 +20,10 @@ _RUNPROD= False
 #days the script will look bakwards in time
 _DAYS = 2
 #calculate new timestamp
-timeMinusOneDay = timestamp-(24*60*60*_DAYS)
+timeMinusDays = timestamp-(24*60*60*_DAYS)
+#must be set like cronjob 
+#cronjob all 15 mins = 60*15
+timeMinusX = timestamp-(60*1)
 
 
 if _RUNPROD == True:
@@ -50,7 +54,9 @@ def main():
 		
 		_reddituser = config['DEFAULT']['_reddituser']
 		_subtocrosspost = config['DEFAULT']['_subtocrosspost']
+		_subsource = config['DEFAULT']['_subsource']
 		_triggerwordscomments =config['DEFAULT']['_triggerwordscomments']
+		_triggerwordstitle =config['DEFAULT']['_triggerwordstitle']
 		
 	except Exception as err:
 		log.error("Reading config didn't work {}".format(str(err)))
@@ -68,29 +74,34 @@ def main():
 		log.error("reddit connection: {}".format(str(err)))
 		
 	try:	
-		result= reddit.redditor(_reddituser).comments.new(limit=None)
-		
-		for comment in result:
-			parent_id = comment.submission.id
-			log.info("comment found Pid: {} Cid:{}, no trigger".format(parent_id,comment.id))
-		
-			if comment.created_utc >= timeMinusOneDay:
-				if comment.body.strip().lower() in _triggerwordscomments:
-					log.info("Trigger found: {}".format(str(comment.body.split("\n", 1)[0][:79])))
-	
-					
-					if _RUNPROD == True:
-						submission = reddit.submission(id=parent_id.replace('t3_',''))
-						cross_post = submission.crosspost(subreddit=_subtocrosspost,send_replies=False)
-						
-						edited_body = comment.body + "."
-						comment.edit(edited_body)
-						
+		result = reddit.redditor(_reddituser).comments.new(limit=None)
+		submissions = reddit.subreddit(_subsource).top("all",limit=None)
+		prettytime = datetime.utcfromtimestamp(timeMinusX).strftime('%Y-%m-%d %H:%M:%S')
+
+		i=0
+		j=0
+		for submission in submissions:
+			tmptitle = submission.title.lower().strip()
+			i +=1
+			
+			if submission.created_utc >= timeMinusX:
+				j+=1
+				log.info("rSubmission in timerange {}".format(prettytime))
+				
+				if re.compile('|'.join(_triggerwordstitle),re.IGNORECASE).search(tmptitle):
+					log.info("Trigger found {} in {} for id {}\r\n".format(_triggerwordstitle,tmptitle,submission.id))
+			
+					if _RUNPROD == False:
+						try:
+							submission = reddit.submission(id=submission.id.replace('t3_',''))
+							cross_post = submission.crosspost(subreddit=_subtocrosspost,send_replies=False)
+						except Exception as err:
+							log.error("Crosspost didn't work for {}, {}".format(submission.id,str(err)))
 					else:
 						log.info("run NOT IN Production")
-			else:
-				log.info("finished and exit script")
-				exit()
+		log.info("{} Submissions found and {} in the timerange".format(i,j))	
+				
+				
 				
 	except Exception as err:
 		log.error("getting comments: {}".format(str(err)))
