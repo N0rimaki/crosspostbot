@@ -91,7 +91,7 @@ def main():
 				if re.compile('|'.join(_triggerwordstitle),re.IGNORECASE).search(tmptitle):
 					log.info("Trigger found {} in {} for id {}\r\n".format(_triggerwordstitle,tmptitle,submission.id))
 			
-					if _RUNPROD == False:
+					if _RUNPROD == True:
 						try:
 							submission = reddit.submission(id=submission.id.replace('t3_',''))
 							cross_post = submission.crosspost(subreddit=_subtocrosspost,send_replies=False)
