@@ -1,4 +1,4 @@
-# crosspostbot
+# crosspostbot [![forthebadge](https://forthebadge.com/images/badges/gluten-free.svg)](https://forthebadge.com)
 crosspost submission when user `_reddituser` comment some trigger words `_triggerwords`.
 The script runs every 15mins (crontab) and collect the comments of the last 24h.
 When a trigger word is found, the submission will be crossposted to another sub `_subtocrosspost`.
