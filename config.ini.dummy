@@ -1,6 +1,6 @@
 [DEFAULT]
 _reddituser = REDDIT_USERNAME
 _subtocrosspost = REDDIT_SUBNAME
-_subsource = REDDIT_SUBNAME_SOURCE
+_subsource = REDDIT_SUBNAME_SOURCE+SECOND_REDDIT_SUBNAME_SOURCE+THIRD_REDDIT_SUBNAME_SOURCE
 _triggerwordscomments = ['awesome!','so soft!','lovely!','wow!']
 _triggerwordstitle = ['TIFU','search','help']

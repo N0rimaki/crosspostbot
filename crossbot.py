@@ -25,12 +25,13 @@ timeMinusDays = timestamp-(24*60*60*_DAYS)
 #cronjob all 15 mins = 60*15
 timeMinusX = timestamp-(60*1)
 
+_LOCALPATH = "/home/pi/crosspostbot/"
 
 if _RUNPROD == True:
 	#path too logfile (if run via crontab, path must be absolut)
-	_LOG_FILENAME = "/home/pi/crosspostbot/log_crossbot.log"
+	_LOG_FILENAME = _LOCALPATH+"log_crossbot.log"
 	#config file path
-	_CONFIG_FILE = "/home/pi/crosspostbot/config.ini"
+	_CONFIG_FILE = _LOCALPATH+"config.ini"
 else:
 	#path too logfile (if run via crontab, path must be absolut)
 	_LOG_FILENAME = "log_crossbot.log"
@@ -74,7 +75,8 @@ def main():
 		log.error("reddit connection: {}".format(str(err)))
 		
 	try:	
-		result = reddit.redditor(_reddituser).comments.new(limit=None)
+		#you can fetch mulitple reddits at the same time, just got to the *.ini and write the subreddits name together with + between the names
+		#example: mysteryobject+cats+redditdev+requestabot
 		submissions = reddit.subreddit(_subsource).top("all",limit=None)
 		prettytime = datetime.utcfromtimestamp(timeMinusX).strftime('%Y-%m-%d %H:%M:%S')
 
