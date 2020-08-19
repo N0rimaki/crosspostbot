@@ -1,4 +1,7 @@
-__pycache__
+__pycache__/
 *.log
-praw.ini
-config.ini
+*.ini
+*.db
+*.sqlite
+*.lock
+*.txt
