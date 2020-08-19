@@ -12,8 +12,9 @@ example: mysteryobject+cats+redditdev+requestabot
 _reddituser = REDDIT_USERNAME
 _subtocrosspost = REDDIT_SUBNAME
 _subsource = REDDIT_SUBNAME_SOURCE+SECOND_REDDIT_SUBNAME_SOURCE+THIRD_REDDIT_SUBNAME_SOURCE
-_triggerwordscomments = ['awesome!','so soft!','lovely!','wow!']
-_triggerwordstitle = ['TIFU','search','help']
+_triggerwordscomments = awesome!,so soft!,lovely!,wow!
+_triggerwordstitle = tifu,search,help
+_flair_1 = 709bbd5c-e23d-11ea-b6b6-0ed6069b27d7
 </pre>
 
 
@@ -21,3 +22,13 @@ won't work with videos https://www.reddit.com/r/help/comments/bnjkxr/this_commun
 
 * why trigger words and not upvotes or saved submissions?
   *	Because not every upvote classifies as content for crosspost
+
+## NEW! - 20200819
+
+trigger in words does not work, fixed it.
+
+new config file! words are now strings and no list anymore! 
+
+made post sticky in target
+
+add flair to the target post, create flairs
