@@ -104,8 +104,8 @@ def main():
 							cross_post = submission.crosspost(subreddit=_subtocrosspost)
 							#add some flair to the submission
 							cross_post.flair.select(_flair_1)
-							#make the submission sticky and distinguish as mod
-							cross_post.mod.distinguish(how="yes", sticky=True)
+							#make the submission sticky
+							cross_post.mod.sticky()
 							log.info("Crosspost seems to worked, new ID:{}".format(cross_post))
 						except Exception as err:
 							log.error("Crosspost didn't work for ID:{}, {}".format(submission.id,str(err)))
