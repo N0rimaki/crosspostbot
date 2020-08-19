@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 __author__ = "u/wontfixit"
 __license__ = "GPL"
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 
 import praw
@@ -25,6 +25,11 @@ timeMinusDays = timestamp-(24*60*60*_DAYS)
 #cronjob all 15 mins = 60*15
 timeMinusX = timestamp-(60*1)
 
+#add flair id from reddit
+_flair_1 = "882c5aa6-c926-11ea-a888-0e38155ddc41"
+
+#########!!!!!!!!!!!!!!!!#####################
+#Change your path
 _LOCALPATH = "/home/pi/crosspostbot/"
 
 if _RUNPROD == True:
@@ -97,6 +102,10 @@ def main():
 						try:
 							submission = reddit.submission(id=submission.id.replace('t3_',''))
 							cross_post = submission.crosspost(subreddit=_subtocrosspost,send_replies=False)
+							#add some flair to the submission
+							submission.flair.select(_flair_1)
+							#make the submission sticky and distinguish as mod
+							submission.mod.distinguish(how="yes", sticky=True)
 						except Exception as err:
 							log.error("Crosspost didn't work for {}, {}".format(submission.id,str(err)))
 					else:
@@ -111,9 +120,6 @@ def main():
 if __name__ == '__main__':	
 	main()
 
-
-
-	
 	
 
 	
