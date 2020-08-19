@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 __author__ = "u/wontfixit"
 __license__ = "GPL"
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 
 
 import praw
@@ -23,14 +23,11 @@ _DAYS = 2
 timeMinusDays = timestamp-(24*60*60*_DAYS)
 #must be set like cronjob 
 #cronjob all 15 mins = 60*15
-timeMinusX = timestamp-(60*1)
-
-#add flair id from reddit
-_flair_1 = "882c5aa6-c926-11ea-a888-0e38155ddc41"
+timeMinusX = timestamp-(60*15)
 
 #########!!!!!!!!!!!!!!!!#####################
 #Change your path
-_LOCALPATH = "/home/pi/crosspostbot/"
+_LOCALPATH = "/home/pi/"
 
 if _RUNPROD == True:
 	#path too logfile (if run via crontab, path must be absolut)
@@ -49,7 +46,8 @@ if _DEBUG == True:
             log.FileHandler(_LOG_FILENAME),
             log.StreamHandler()],level=log.INFO,format='%(asctime)s ; %(levelname)s ; %(funcName)s() ; %(message)s')
 
-
+def words_in_string(word_list, a_string):
+    return set(word_list).intersection(a_string.split())
 
 
 def main():
@@ -61,20 +59,20 @@ def main():
 		_reddituser = config['DEFAULT']['_reddituser']
 		_subtocrosspost = config['DEFAULT']['_subtocrosspost']
 		_subsource = config['DEFAULT']['_subsource']
-		_triggerwordscomments =config['DEFAULT']['_triggerwordscomments']
-		_triggerwordstitle =config['DEFAULT']['_triggerwordstitle']
+		_triggerwordscomments =config['DEFAULT']['_triggerwordscomments'].split(',')
+		_triggerwordstitle = config['DEFAULT']['_triggerwordstitle'].split(',')
+		_flair_1 =config['DEFAULT']['_flair_1']
 		
 	except Exception as err:
 		log.error("Reading config didn't work {}".format(str(err)))
 		exit()
 	
-	log.info("Script will listen to r/{}".format(_subtocrosspost))	
+	log.info("Script will listen to r/{}".format(_subsource))	
 		
 	try:
 		_UA = 'crossbot by /u/['+_reddituser+']'
 		reddit = praw.Reddit("bot1",user_agent=_UA)
 		reddit.validate_on_submit=True	
-		
 		
 	except Exception as err:
 		log.error("reddit connection: {}".format(str(err)))
@@ -83,39 +81,43 @@ def main():
 		#you can fetch mulitple reddits at the same time, just got to the *.ini and write the subreddits name together with + between the names
 		#example: mysteryobject+cats+redditdev+requestabot
 		submissions = reddit.subreddit(_subsource).top("all",limit=None)
+		
+		#just make some pretty time out of the delta timestamp
 		prettytime = datetime.utcfromtimestamp(timeMinusX).strftime('%Y-%m-%d %H:%M:%S')
-
+		log.info("Submission in timerange {}".format(prettytime))
+		log.info("")
+		
 		i=0
 		j=0
 		for submission in submissions:
 			tmptitle = submission.title.lower().strip()
 			i +=1
-			
 			if submission.created_utc >= timeMinusX:
 				j+=1
-				log.info("rSubmission in timerange {}".format(prettytime))
-				
-				if re.compile('|'.join(_triggerwordstitle),re.IGNORECASE).search(tmptitle):
-					log.info("Trigger found {} in {} for id {}\r\n".format(_triggerwordstitle,tmptitle,submission.id))
+				log.info("Try: \"{}\" in \"{}\" for ID:{}".format(_triggerwordstitle,tmptitle,submission.id))
+
+				if words_in_string(_triggerwordstitle, tmptitle):
+					log.info("---Trigger found \"{}\" in \"{}\" for ID:{}".format(_triggerwordstitle,tmptitle,submission.id))
 			
 					if _RUNPROD == True:
 						try:
-							submission = reddit.submission(id=submission.id.replace('t3_',''))
-							cross_post = submission.crosspost(subreddit=_subtocrosspost,send_replies=False)
+							cross_post = submission.crosspost(subreddit=_subtocrosspost)
 							#add some flair to the submission
-							submission.flair.select(_flair_1)
+							cross_post.flair.select(_flair_1)
 							#make the submission sticky and distinguish as mod
-							submission.mod.distinguish(how="yes", sticky=True)
+							cross_post.mod.distinguish(how="yes", sticky=True)
+							log.info("Crosspost seems to worked, new ID:{}".format(cross_post))
 						except Exception as err:
-							log.error("Crosspost didn't work for {}, {}".format(submission.id,str(err)))
+							log.error("Crosspost didn't work for ID:{}, {}".format(submission.id,str(err)))
 					else:
-						log.info("run NOT IN Production")
-		log.info("{} Submissions found and {} in the timerange".format(i,j))	
+						log.info("running NOT IN production, no changes were made.")
+		log.info("")
+		log.info("{} submissions found and {} were in the timerange".format(i,j))	
 				
 				
 				
 	except Exception as err:
-		log.error("getting comments: {}".format(str(err)))
+		log.error("getting submissions: {}".format(str(err)))
 
 if __name__ == '__main__':	
 	main()
