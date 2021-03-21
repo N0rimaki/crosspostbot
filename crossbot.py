@@ -16,29 +16,29 @@ timestamp = datetime.timestamp(now)
 #enable logging
 _DEBUG = True
 #will write changes to PROD if True
-_RUNPROD= False
+_RUNPROD= True
 #days the script will look bakwards in time
 _DAYS = 2
 #calculate new timestamp
 timeMinusDays = timestamp-(24*60*60*_DAYS)
-#must be set like cronjob 
+#must be set like cronjob
 #cronjob all 15 mins = 60*15
 timeMinusX = timestamp-(60*15)
 
 #########!!!!!!!!!!!!!!!!#####################
 #Change your path
-_LOCALPATH = "/home/pi/"
+#_LOCALPATH = "/home/pi/"
 
 if _RUNPROD == True:
 	#path too logfile (if run via crontab, path must be absolut)
-	_LOG_FILENAME = _LOCALPATH+"log_crossbot.log"
+	_LOG_FILENAME = "log_crossbot.log"
 	#config file path
-	_CONFIG_FILE = _LOCALPATH+"config.ini"
+	_CONFIG_FILE = "config.ini"
 else:
 	#path too logfile (if run via crontab, path must be absolut)
 	_LOG_FILENAME = "log_crossbot.log"
 	#config file path
-	_CONFIG_FILE = "config.ini"	
+	_CONFIG_FILE = "config.ini"
 
 
 if _DEBUG == True:
@@ -49,44 +49,55 @@ if _DEBUG == True:
 def words_in_string(word_list, a_string):
     return set(word_list).intersection(a_string.split())
 
-
-def main():
-	log.info("Lastrun of the script")
+def  readConfig():
+	log.info("Try to read config")
 	try:
 		config = configparser.ConfigParser()
 		config.read(_CONFIG_FILE)
-		
+
 		_reddituser = config['DEFAULT']['_reddituser']
 		_subtocrosspost = config['DEFAULT']['_subtocrosspost']
 		_subsource = config['DEFAULT']['_subsource']
 		_triggerwordscomments =config['DEFAULT']['_triggerwordscomments'].split(',')
 		_triggerwordstitle = config['DEFAULT']['_triggerwordstitle'].split(',')
 		_flair_1 =config['DEFAULT']['_flair_1']
-		
+
+		_monitorByRedditusername =  config['DEFAULT']['_monitorByRedditusername']
+		_monitorBytriggerwordscomments =  config['DEFAULT']['_monitorBytriggerwordscomments']
+		_monitorBytriggerwordstitle =  config['DEFAULT']['_monitorBytriggerwordstitle']
+		_monitorByflair =  config['DEFAULT']['_monitorByflair']
+		log.info("config successfully read")
+
 	except Exception as err:
 		log.error("Reading config didn't work {}".format(str(err)))
 		exit()
-	
-	log.info("Script will listen to r/{}".format(_subsource))	
-		
+
+
+def main():
+	log.info("Lastrun of the script")
+	########################################### Here! last work
+	conf = readConfig()
+
+	log.info("Script will listen to r/{}".format(_subsource))
+
 	try:
 		_UA = 'crossbot by /u/['+_reddituser+']'
-		reddit = praw.Reddit("bot1",user_agent=_UA)
-		reddit.validate_on_submit=True	
-		
+		reddit = praw.Reddit("bot2",user_agent=_UA)
+		reddit.validate_on_submit=True
+
 	except Exception as err:
 		log.error("reddit connection: {}".format(str(err)))
-		
-	try:	
+
+	try:
 		#you can fetch mulitple reddits at the same time, just got to the *.ini and write the subreddits name together with + between the names
 		#example: mysteryobject+cats+redditdev+requestabot
 		submissions = reddit.subreddit(_subsource).top("all",limit=None)
-		
+
 		#just make some pretty time out of the delta timestamp
 		prettytime = datetime.utcfromtimestamp(timeMinusX).strftime('%Y-%m-%d %H:%M:%S')
 		log.info("Submission in timerange {}".format(prettytime))
 		log.info("")
-		
+
 		i=0
 		j=0
 		for submission in submissions:
@@ -98,7 +109,7 @@ def main():
 
 				if words_in_string(_triggerwordstitle, tmptitle):
 					log.info("---Trigger found \"{}\" in \"{}\" for ID:{}".format(_triggerwordstitle,tmptitle,submission.id))
-			
+
 					if _RUNPROD == True:
 						try:
 							cross_post = submission.crosspost(subreddit=_subtocrosspost)
@@ -112,19 +123,12 @@ def main():
 					else:
 						log.info("running NOT IN production, no changes were made.")
 		log.info("")
-		log.info("{} submissions found and {} were in the timerange".format(i,j))	
-				
-				
-				
+		log.info("{} submissions found and {} were in the timerange".format(i,j))
+
+
+
 	except Exception as err:
 		log.error("getting submissions: {}".format(str(err)))
 
-if __name__ == '__main__':	
+if __name__ == '__main__':
 	main()
-
-	
-
-	
-	
-	
-	
